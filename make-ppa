@@ -18,7 +18,7 @@ CHANGELOG = 'debian/changelog'
 DISTS = ['lucid', 'precise', 'quantal', 'raring']
 VERSION_PATTERN = re.compile(
     r'^(?P<name>[+-.a-z0-9]+)\s+\((?P<version>[^)]+)\)\s+(?P<dist>[^)]+); urgency=(?P<urgency>.+)$')
-OUTPUT_DIR = os.path.dirname(os.path.realpath(__file__))
+OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class Package(object):
