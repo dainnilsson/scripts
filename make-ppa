@@ -12,17 +12,15 @@ import subprocess
 import re
 import argparse
 
-PPA = 'ppa:yubico/stable'
-
 CHANGELOG = 'debian/changelog'
-DISTS = ['lucid', 'precise', 'quantal', 'raring']
+DISTS = ['lucid', 'precise', 'quantal', 'raring', 'saucy']
 VERSION_PATTERN = re.compile(
     r'^(?P<name>[+-.a-z0-9]+)\s+\((?P<version>[^)]+)\)\s+(?P<dist>[^)]+); urgency=(?P<urgency>.+)$')
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class Package(object):
-    def __init__(self, dists=DISTS):
+    def __init__(self, dists=DISTS, ppa='yubico/stable'):
         self.dists = dists
 
         file = open(CHANGELOG, 'r')
@@ -30,13 +28,14 @@ class Package(object):
         file.close()
         match = VERSION_PATTERN.match(self.changelog[0])
 
+        self.ppa = ppa
         self.name = match.group('name')
         self.dist = match.group('dist')
         self.urgency = match.group('urgency')
         orig_version = match.group('version')
 
         base_target = "%s/%s/%s" % (OUTPUT_DIR, self.name, orig_version)
-        if '~ppa' in orig_version or self.dist in DISTS:
+        if '~ppa' in orig_version:
             print "Version '%s %s' already looks like a ppa version!" % \
                 (orig_version, self.dist)
             sys.exit(1)
@@ -67,12 +66,16 @@ class Package(object):
         upstream_version = self.version.split('-', 1)[0]
         orig = '%s_%s.orig.tar.gz' % (self.name, upstream_version)
         if not os.path.exists('../%s' % orig):
-            res = subprocess.check_output('pristine-tar list', shell=True)
-            if not orig in res.split():
-                print "../%s is missing!" % orig
-                sys.exit(1)
-            os.system('pristine-tar checkout %s' % orig)
-            os.system('mv %s ../' % orig)
+            try:
+                res = subprocess.check_output('pristine-tar list', shell=True)
+                if not orig in res.split():
+                    print "../%s is missing!" % orig
+                    sys.exit(1)
+                os.system('pristine-tar checkout %s' % orig)
+                os.system('mv %s ../' % orig)
+            except:
+                #Try without orig, might be a native package.
+                pass
 
         os.system('mkdir -p %s' % self.target)
         os.system('cp ../%s %s/' % (orig, self.target))
@@ -91,7 +94,7 @@ class Package(object):
     def upload(self):
         for file in os.listdir(self.target):
             if file.endswith('.changes'):
-                os.system('dput %s %s/%s' % (PPA, self.target, file))
+                os.system('dput ppa:%s %s/%s' % (self.ppa, self.target, file))
 
 
 if __name__ == '__main__':
@@ -103,6 +106,8 @@ if __name__ == '__main__':
                         help='Do not upload the (signed) packages')
     parser.add_argument('--dists', nargs='+', default=DISTS, metavar='DIST',
                         help='Distributions to build for')
+    parser.add_argument('--ppa', nargs='?', default='yubico/stable',
+                        help='PPA to upload to')
     parser.add_argument('--force', action='store_true', dest='force',
                         help='Do not prompt for confirmation before running')
 
@@ -111,7 +116,7 @@ if __name__ == '__main__':
     do_sign = args.sign
     do_upload = do_sign and args.upload
 
-    package = Package(dists=args.dists)
+    package = Package(dists=args.dists, ppa=args.ppa)
 
     print "Building %s %s for distributions: %s" % \
         (package.name, package.version, ', '.join(package.dists))
@@ -119,6 +124,7 @@ if __name__ == '__main__':
         print "Will sign packages!"
     if do_upload:
         print "Will upload packages!"
+        print "PPA: %s" % args.ppa
     if not args.force:
         raw_input("Enter to continue, Ctrl+C to abort")
 
