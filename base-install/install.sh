@@ -11,7 +11,7 @@ cd "$(dirname "$0")"
 cat bashrc_additions >> ~/.bash_rc
 
 #GPG
-./gpg-agent-installation.sh
+./gpg.sh
 
 #Git
 sudo apt-get install git
