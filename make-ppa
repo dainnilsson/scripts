@@ -13,13 +13,14 @@ import re
 import argparse
 
 CHANGELOG = 'debian/changelog'
-DISTS = ['lucid', 'precise', 'quantal', 'raring', 'saucy']
+DISTS = ['lucid', 'precise', 'trusty', 'utopic', 'vivid']
 VERSION_PATTERN = re.compile(
     r'^(?P<name>[+-.a-z0-9]+)\s+\((?P<version>[^)]+)\)\s+(?P<dist>[^)]+); urgency=(?P<urgency>.+)$')
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class Package(object):
+
     def __init__(self, dists=DISTS, ppa='yubico/stable'):
         self.dists = dists
 
@@ -74,7 +75,7 @@ class Package(object):
                 os.system('pristine-tar checkout %s' % orig)
                 os.system('mv %s ../' % orig)
             except:
-                #Try without orig, might be a native package.
+                # Try without orig, might be a native package.
                 pass
 
         os.system('mkdir -p %s' % self.target)
@@ -87,9 +88,11 @@ class Package(object):
         file.writelines(self.changelog)
         file.close()
 
-    def sign(self):
-        os.system('debsign %s/%s_%s*_source.changes' %
-                  (self.target, self.name, self.version))
+    def sign(self, key):
+        args = ("-k %s" % key) if key else ""
+        cmd = ('debsign %s %s/%s_%s*_source.changes' %
+              (args, self.target, self.name, self.version))
+        os.system(cmd)
 
     def upload(self):
         for file in os.listdir(self.target):
@@ -110,6 +113,8 @@ if __name__ == '__main__':
                         help='PPA to upload to')
     parser.add_argument('--force', action='store_true', dest='force',
                         help='Do not prompt for confirmation before running')
+    parser.add_argument('-k', '--key', nargs='?',
+                        help='GPG key id to use for signing')
 
     args = parser.parse_args()
 
@@ -131,7 +136,7 @@ if __name__ == '__main__':
     package.build()
 
     if do_sign:
-        package.sign()
+        package.sign(args.key)
 
     if do_upload:
         package.upload()
