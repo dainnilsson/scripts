@@ -8,25 +8,28 @@ set -e
 #Install needed stuff:
 sudo apt-get install gnupg2 pcscd opensc gpgsm gnupg-agent
 
+#Create .gnupg dir
+gpg --list-keys
+
 #Use SHA2 instead of SHA1
 echo "personal-digest-preferences SHA256" >> ~/.gnupg/gpg.conf
 echo "cert-digest-algo SHA256" >> ~/.gnupg/gpg.conf
 echo "default-preference-list SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed" >> ~/.gnupg/gpg.conf
 
 #Disable gnome crap:
-echo "X-GNOME-Autostart-enabled=false" >> /etc/xdg/autostart/gnome-keyring-gpg.desktop
-echo "X-GNOME-Autostart-enabled=false" >> /etc/xdg/autostart/gnome-keyring-ssh.desktop
+echo "X-GNOME-Autostart-enabled=false" | sudo tee -a /etc/xdg/autostart/gnome-keyring-gpg.desktop
+echo "X-GNOME-Autostart-enabled=false" | sudo tee -a /etc/xdg/autostart/gnome-keyring-ssh.desktop
 
 #Configure gpg-agent:
 echo "enable-ssh-support" >> ~/.gnupg/gpg-agent.conf
 echo "write-env-file $HOME/.gnupg/gpg-agent-info" >> ~/.gnupg/gpg-agent.conf
 
 #Restart agent
-killall -9 gpg-agent
+killall -9 gpg-agent || true
 gpg-agent --daemon
 
 #Add to ~/.bashrc (or other place that gets run automatically).
-source ~/.gnupg/gpg-agent-info
+echo "source ~/.gnupg/gpg-agent-info" >> ~/.bashrc
 
 cat << EOF
 Now reboot your computer.
