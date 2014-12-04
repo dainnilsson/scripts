@@ -32,9 +32,12 @@ gpg-agent --daemon
 echo "source ~/.gnupg/gpg-agent-info" >> ~/.bashrc
 
 cat << EOF
+You will need to autostart gpg-agent --daemon on startup. In XFCE, this is easiest done
+by adding an Application Autostart in the Session and Startup section of Settings.
+
 Now reboot your computer.
 
-If you're running VMWare and need to attach a NEO in composite mode, you will
+NOTE: If you're running VMWare and need to attach a NEO in composite mode, you will
 need to make changes to the .vmx file to allow you to attach HID devices:
 
   usb.generic.allowHID = "TRUE"
