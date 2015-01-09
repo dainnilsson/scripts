@@ -28,7 +28,7 @@ git clone git@github.com:dainnilsson/vimconf.git ~/.vim
 ~/.vim/install.sh
 
 #Pass
-sudo apt-get install pass
+sudo apt-get install pass python-qrcode
 git clone dain.se:/git/password-store.git ~/.password-store
 
 echo "ALL DONE!"
