@@ -8,7 +8,7 @@ set -e
 cd "$(dirname "$0")"
 
 #Bash
-cat bashrc_additions >> ~/.bash_rc
+cat bashrc_additions >> ~/.bashrc
 
 #GPG (run gpg.sh first!)
 gpg --recv-key 20EE325B86A81BCBD3E56798F04367096FBA95E8
