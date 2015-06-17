@@ -5,7 +5,7 @@
 
 set -e
 
-PACKAGES="python ipython virtualenvwrapper python-setuptools python-nose"
+PACKAGES="python ipython virtualenvwrapper python-setuptools"
 
 cd "$(dirname "$0")"
 
