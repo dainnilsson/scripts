@@ -1,0 +1,121 @@
+#! /usr/bin/env python
+
+from requests import get, post
+from subprocess import check_output
+from getpass import getpass
+import argparse
+import json
+import sys
+import os
+
+
+CONTENT_TYPES = {
+    '.tar.gz': 'application/x-gzip',
+    '.exe': 'application/x-msdownload'
+}
+
+
+def get_url(owner, repo, tag, token):
+    base = "https://api.github.com"
+    url = "%s/repos/%s/%s/releases/tags/%s" % (base, owner, repo, tag)
+    release = get(url).json()
+    if release['id'] is None:
+        release = create_release(owner, repo, tag, token)
+    print release
+    return release['upload_url'].replace('{?name}', '')
+
+
+def create_release(owner, repo, tag, token):
+    base = "https://api.github.com"
+    url = "%s/repos/%s/%s/releases" % (base, owner, repo)
+    print "Creating new draft release for: %s" % tag
+    response = post(
+        url,
+        headers={'Authorization': 'token %s' % token},
+        data=json.dumps({
+            'tag_name': tag,
+            'name': tag
+        })
+    )
+    if not response.ok:
+        print "Error creating release"
+        print response.text
+        sys.exit(1)
+
+    return response.json()
+
+
+def get_content_type(fname):
+    for ext in CONTENT_TYPES:
+        if fname.endswith(ext):
+            return CONTENT_TYPES[ext]
+    return 'application/octet-stream'
+
+
+def upload(url, token, fname):
+    print "Uploading %s to %s..." % (fname, url)
+
+    with open(fname, 'rb') as f:
+        payload = f.read()
+
+    result = post(
+        url,
+        params={'name': os.path.basename(fname)},
+        headers={'Content-Type': get_content_type(fname),
+                 'Authorization': 'token %s' % token},
+        data=payload
+    )
+
+    print result.text
+    print result.json()
+
+    if not result.ok:
+        print "ERROR"
+        sys.exit(1)
+
+
+def get_tag():
+    return check_output(['git', 'describe', '--abbrev=0']).strip()
+
+
+def get_repo():
+    output = check_output(['git', 'remote', '-v'])
+    url = output.split()[1].replace(':', '/')
+    url, owner, repo = url.rsplit('/', 2)
+    repo = repo[:-4]  # Remove .git
+    return owner, repo
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='Upload binaries to GitHub releases.')
+    parser.add_argument('-t', '--tag', help='name of the tag to upload for')
+    parser.add_argument('-r', '--repo', help='Github repo "owner/name"')
+    parser.add_argument('files', nargs='+', help='files to upload')
+
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    args.tag = args.tag or get_tag()
+    if args.repo:
+        owner, repo = args.repo.split('/')
+    else:
+        owner, repo = get_repo()
+
+    print "Files:", args.files
+    print "Uploading to %s/%s, release: %s" % (owner, repo, args.tag)
+    token = getpass('GitHub auth token: ')
+
+    url = get_url(owner, repo, args.tag, token)
+    print "Upload URL: %s" % url
+
+    for fname in args.files:
+        upload(url, token, fname)
+
+    print "ALL DONE!"
+
+if __name__ == '__main__':
+    main()
