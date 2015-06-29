@@ -107,7 +107,13 @@ def main():
 
     print "Files:", args.files
     print "Uploading to %s/%s, release: %s" % (owner, repo, args.tag)
-    token = getpass('GitHub auth token: ')
+
+    print "You need a GitHub auth token with the public_repo permission set."
+    print "If you do no thave one, create one here:"
+    print "    https://github.com/settings/tokens"
+    print ""
+
+    token = getpass('Enter auth token: ')
 
     url = get_url(owner, repo, args.tag, token)
     print "Upload URL: %s" % url
