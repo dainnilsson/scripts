@@ -91,7 +91,8 @@ def parse_args():
         description='Upload binaries to GitHub releases.')
     parser.add_argument('-t', '--tag', help='name of the tag to upload for')
     parser.add_argument('-r', '--repo', help='Github repo "owner/name"')
-    parser.add_argument('files', nargs='+', help='files to upload')
+    parser.add_argument('files', nargs='+', metavar='FILE',
+                        help='files to upload')
 
     return parser.parse_args()
 
