@@ -80,10 +80,14 @@ def get_tag():
 
 def get_repo():
     output = check_output(['git', 'remote', '-v'])
-    url = output.split()[1].replace(':', '/')
-    url, owner, repo = url.rsplit('/', 2)
-    repo = repo[:-4]  # Remove .git
-    return owner, repo
+    urls = output.split()[1::3]
+    for url in urls:
+        if 'github.com' in url:
+            url, owner, repo = url.replace(':', '/').rsplit('/', 2)
+            repo = repo[:-4]  # Remove .git
+            return owner, repo
+    print "Unable to get GitHub owner and repo from remotes!"
+    sys.exit(1)
 
 
 def parse_args():
@@ -110,7 +114,7 @@ def main():
     print "Uploading to %s/%s, release: %s" % (owner, repo, args.tag)
 
     print "You need a GitHub auth token with the public_repo permission set."
-    print "If you do no thave one, create one here:"
+    print "If you do not have one, create one here:"
     print "    https://github.com/settings/tokens"
     print ""
 
