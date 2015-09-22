@@ -19,10 +19,10 @@ def get_url(owner, repo, tag, token):
     base = "https://api.github.com"
     url = "%s/repos/%s/%s/releases/tags/%s" % (base, owner, repo, tag)
     release = get(url).json()
-    if release['id'] is None:
+    if release.get('id') is None:
         release = create_release(owner, repo, tag, token)
     print release
-    return release['upload_url'].replace('{?name}', '')
+    return release['upload_url'].replace('{?name,label}', '')
 
 
 def create_release(owner, repo, tag, token):
@@ -113,12 +113,15 @@ def main():
     print "Files:", args.files
     print "Uploading to %s/%s, release: %s" % (owner, repo, args.tag)
 
-    print "You need a GitHub auth token with the public_repo permission set."
-    print "If you do not have one, create one here:"
-    print "    https://github.com/settings/tokens"
-    print ""
+    if sys.stdin.isatty():
+        print "You need a GitHub auth token with the public_repo permission set."
+        print "If you do not have one, create one here:"
+        print "    https://github.com/settings/tokens"
+        print ""
 
-    token = getpass('Enter auth token: ')
+        token = getpass('Enter auth token: ')
+    else:
+        token = sys.stdin.read().strip()
 
     url = get_url(owner, repo, args.tag, token)
     print "Upload URL: %s" % url
