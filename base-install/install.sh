@@ -11,19 +11,13 @@ cd "$(dirname "$0")"
 cat bashrc_additions >> ~/.bashrc
 
 #GPG (run gpg.sh first!)
-gpg --recv-key 20EE325B86A81BCBD3E56798F04367096FBA95E8
-gpg --card-status
+gpg2 --recv-key 20EE325B86A81BCBD3E56798F04367096FBA95E8
+gpg2 --card-status
 
 #Git
-sudo apt-get install git git2cl
-git config --global color.ui "true"
-git config --global user.email "dain@yubico.com"
-git config --global user.name "Dain Nilsson"
-git config --global user.signingkey "0x6FBA95E8"
-git config --global push.default simple
+./git.sh
 
 #VIM
-sudo apt-get install vim
 git clone git@github.com:dainnilsson/vimconf.git ~/.vim
 ~/.vim/install.sh
 
