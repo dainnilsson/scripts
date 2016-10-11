@@ -8,6 +8,7 @@ set -e
 cd "$(dirname "$0")"
 
 #Bash
+cp bash_ps1 ~/.bash_ps1
 cat bashrc_additions >> ~/.bashrc
 
 #GPG (run gpg.sh first!)
