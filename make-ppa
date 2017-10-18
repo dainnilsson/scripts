@@ -88,10 +88,13 @@ class Package(object):
         file.writelines(self.changelog)
         file.close()
 
-    def sign(self, key):
-        args = ("-k %s" % key) if key else ""
+    def sign(self, key, program):
+        args = [
+            ("-k %s" % key) if key else "",
+            ("-p %s" % program) if program else "",
+        ]
         cmd = ('debsign %s %s/%s_%s*_source.changes' %
-              (args, self.target, self.name, self.version))
+              (" ".join(args), self.target, self.name, self.version))
         os.system(cmd)
 
     def upload(self):
@@ -115,6 +118,8 @@ if __name__ == '__main__':
                         help='Do not prompt for confirmation before running')
     parser.add_argument('-k', '--key', nargs='?',
                         help='GPG key id to use for signing')
+    parser.add_argument('-p', '--program', nargs='?',
+                        help='GPG program to use for signing')
 
     args = parser.parse_args()
 
@@ -136,7 +141,7 @@ if __name__ == '__main__':
     package.build()
 
     if do_sign:
-        package.sign(args.key)
+        package.sign(args.key, args.program)
 
     if do_upload:
         package.upload()
