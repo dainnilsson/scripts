@@ -63,7 +63,7 @@ class Package(object):
         os.system('mv ../%s_%s* %s/' %
                  (self.name, version, self.target))
 
-    def build(self):
+    def build(self, install_deps):
         upstream_version = self.version.split('-', 1)[0]
         orig = '%s_%s.orig.tar.gz' % (self.name, upstream_version)
         if not os.path.exists('../%s' % orig):
@@ -80,6 +80,9 @@ class Package(object):
 
         os.system('mkdir -p %s' % self.target)
         os.system('cp ../%s %s/' % (orig, self.target))
+
+        if install_deps:
+            os.system('yes | sudo mk-build-deps --install --remove')
 
         for dist in self.dists:
             self.build_dist(dist)
@@ -116,6 +119,8 @@ if __name__ == '__main__':
                         help='PPA to upload to')
     parser.add_argument('--force', action='store_true', dest='force',
                         help='Do not prompt for confirmation before running')
+    parser.add_argument('--install-deps', action='store_true', dest='install_deps',
+                        help='Install build dependencies')
     parser.add_argument('-k', '--key', nargs='?',
                         help='GPG key id to use for signing')
     parser.add_argument('-p', '--program', nargs='?',
@@ -138,7 +143,7 @@ if __name__ == '__main__':
     if not args.force:
         raw_input("Enter to continue, Ctrl+C to abort")
 
-    package.build()
+    package.build(args.install_deps)
 
     if do_sign:
         package.sign(args.key, args.program)
