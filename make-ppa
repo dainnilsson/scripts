@@ -15,7 +15,7 @@ import re
 import argparse
 
 CHANGELOG = 'debian/changelog'
-DISTS = ['trusty', 'xenial', 'bionic', 'cosmic']
+DISTS = ['trusty', 'xenial', 'bionic', 'focal', 'jammy', 'kinetic']
 VERSION_PATTERN = re.compile(
     r'^(?P<name>[+-.a-z0-9]+)\s+\((?P<version>[^)]+)\)\s+(?P<dist>[^)]+); urgency=(?P<urgency>.+)$')
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
