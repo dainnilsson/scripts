@@ -1,10 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Creates source packages and uploads them to Launchpad.
 #
 # Put this script somewhere, then run it from a git repository containing
 # sources for a debian package. Resulting packages will be created in a
 # subdirectory next to the make-ppa script.
+
+from __future__ import print_function
 
 import sys
 import os
@@ -17,6 +19,9 @@ DISTS = ['trusty', 'xenial', 'bionic', 'cosmic']
 VERSION_PATTERN = re.compile(
     r'^(?P<name>[+-.a-z0-9]+)\s+\((?P<version>[^)]+)\)\s+(?P<dist>[^)]+); urgency=(?P<urgency>.+)$')
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+if sys.version_info[0] < 3:
+    input = raw_input
 
 
 class Package(object):
@@ -37,8 +42,8 @@ class Package(object):
 
         base_target = "%s/%s/%s" % (OUTPUT_DIR, self.name, orig_version)
         if '~ppa' in orig_version:
-            print "Version '%s %s' already looks like a ppa version!" % \
-                (orig_version, self.dist)
+            print("Version '%s %s' already looks like a ppa version!" % \
+                (orig_version, self.dist))
             sys.exit(1)
 
         ppa_version = 1
@@ -51,7 +56,7 @@ class Package(object):
         version = '%s~%s1' % (self.version, dist)
         line = "%s (%s) %s; urgency=%s" % \
             (self.name, version, dist, self.urgency)
-        print "Build %s" % line
+        print("Build %s" % line)
         changelog = list(self.changelog)
         changelog[0] = line
 
@@ -70,7 +75,7 @@ class Package(object):
             try:
                 res = subprocess.check_output('pristine-tar list', shell=True)
                 if not orig in res.split():
-                    print "../%s is missing!" % orig
+                    print("../%s is missing!" % orig)
                     sys.exit(1)
                 os.system('pristine-tar checkout %s' % orig)
                 os.system('mv %s ../' % orig)
@@ -133,15 +138,15 @@ if __name__ == '__main__':
 
     package = Package(dists=args.dists, ppa=args.ppa)
 
-    print "Building %s %s for distributions: %s" % \
-        (package.name, package.version, ', '.join(package.dists))
+    print("Building %s %s for distributions: %s" % \
+        (package.name, package.version, ', '.join(package.dists)))
     if do_sign:
-        print "Will sign packages!"
+        print("Will sign packages!")
     if do_upload:
-        print "Will upload packages!"
-        print "PPA: %s" % args.ppa
+        print("Will upload packages!")
+        print("PPA: %s" % args.ppa)
     if not args.force:
-        raw_input("Enter to continue, Ctrl+C to abort")
+        input("Enter to continue, Ctrl+C to abort")
 
     package.build(args.install_deps)
 
@@ -151,4 +156,4 @@ if __name__ == '__main__':
     if do_upload:
         package.upload()
 
-    print "All done!"
+    print("All done!")
